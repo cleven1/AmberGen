@@ -11,6 +11,30 @@
 - 执行模式：支持并行和串行执行
 - 流式输出：实时响应支持
 
+## 配置文件
+
+框架使用 JSON 格式的配置文件来管理各种设置。以下是配置文件的结构和使用方法：
+
+### 配置文件结构
+
+配置文件 `config.json` 的基本结构如下：
+
+```json
+{
+  "api_key": "your-openai-api-key",
+  "base_url": "https://api.openai.com",
+  "model": "gpt-4",
+}
+```
+
+### 配置项说明
+
+| 配置项 | 说明 | 示例值 |
+|-------|------|-------|
+| api_key | OpenAI API 密钥 | "sk-..." |
+| base_url | API 基础 URL | "https://api.openai.com" |
+| model | 默认使用的模型 | "gpt-4" |
+
 ## 示例
 
 框架提供了多个完整的示例，展示不同使用场景和功能：
