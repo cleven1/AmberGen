@@ -14,6 +14,8 @@ type DependencyGraph struct {
 	roundResults []map[string]string // 每轮的结果
 	callback     OutputCallback      // 添加回调接口
 	mu           sync.RWMutex
+	// 添加memory统一管理
+	memory *MemoryManager
 }
 
 type Node struct {
@@ -32,6 +34,7 @@ func NewDependencyGraph(maxRounds int, callback OutputCallback) *DependencyGraph
 		maxRounds:    maxRounds,
 		roundResults: make([]map[string]string, 0),
 		callback:     callback,
+		memory:       globalMemoryManager,
 	}
 }
 
@@ -119,6 +122,9 @@ func (d *DependencyGraph) Execute(ctx context.Context, input string) ([]map[stri
 	if d.callback != nil {
 		d.callback.OnAllComplete(d.roundResults)
 	}
+
+	// 执行完成后清理Memory
+	d.memory.ClearTaskMemory(getOrCreateTaskID())
 
 	return d.roundResults, nil
 }

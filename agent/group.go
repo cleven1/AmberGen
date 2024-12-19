@@ -18,6 +18,8 @@ type Group struct {
 	selector     AgentSelector // 添加选择器
 	parallel     bool          // 是否并发执行
 	mu           sync.RWMutex
+	// 添加memory统一管理
+	memory *MemoryManager
 }
 
 // NewGroup 创建新的Agent组
@@ -31,6 +33,7 @@ func NewGroup(maxRounds int, parallel bool, callback OutputCallback) *Group {
 		roundResults: make([]map[string]string, 0, maxRounds),
 		callback:     callback,
 		parallel:     parallel,
+		memory:       globalMemoryManager,
 	}
 }
 
@@ -86,6 +89,9 @@ func (g *Group) Execute(ctx context.Context, input string) ([]map[string]string,
 	if g.callback != nil {
 		g.callback.OnAllComplete(g.roundResults)
 	}
+
+	// 执行完成后清理Memory
+	g.memory.ClearTaskMemory(getOrCreateTaskID())
 
 	return g.roundResults, nil
 }
