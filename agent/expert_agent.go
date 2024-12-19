@@ -236,9 +236,6 @@ func (e *ExpertAgent) Execute(ctx context.Context, input string) (string, error)
 	// 如果是流式输出，在这里调用完成回调
 	if e.useStream && e.callback != nil {
 		e.callback.OnComplete(e.Name())
-	} else {
-		// 对于非流式输出，在这里发送内容
-		e.callback.OnContent(e.Name(), finalResponse.String())
 	}
 
 	return finalResponse.String(), nil
