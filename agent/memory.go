@@ -2,6 +2,7 @@ package agent
 
 import (
 	"multi-agent/oneapi"
+	"sync"
 )
 
 // Memory 用于存储Agent的对话历史
@@ -35,4 +36,40 @@ func (m *Memory) GetHistory() []oneapi.ChatMessage {
 // Clear 清空历史记录
 func (m *Memory) Clear() {
 	m.history = make([]oneapi.ChatMessage, 0)
+}
+
+// MemoryManager 管理不同任务的Memory实例
+type MemoryManager struct {
+	memories map[string]*Memory
+	mutex    sync.RWMutex
+}
+
+// NewMemoryManager 创建新的MemoryManager
+func NewMemoryManager() *MemoryManager {
+	return &MemoryManager{
+		memories: make(map[string]*Memory),
+		mutex:    sync.RWMutex{},
+	}
+}
+
+// GetMemory 获取指定任务的Memory实例，如果不存在则创建新的
+func (mm *MemoryManager) GetMemory(taskID string) *Memory {
+	mm.mutex.Lock()
+	defer mm.mutex.Unlock()
+
+	if memory, exists := mm.memories[taskID]; exists {
+		return memory
+	}
+
+	memory := NewMemory()
+	mm.memories[taskID] = memory
+	return memory
+}
+
+// ClearTaskMemory 清理指定任务的Memory
+func (mm *MemoryManager) ClearTaskMemory(taskID string) {
+	mm.mutex.Lock()
+	defer mm.mutex.Unlock()
+
+	delete(mm.memories, taskID)
 }

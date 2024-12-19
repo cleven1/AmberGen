@@ -45,7 +45,7 @@ func newDefaultAgent(name string, expertise string, description string, model st
 		log.Fatal("创建AI客户端失败")
 	}
 	return &ExpertAgent{
-		BaseAgent:   NewBaseAgent(name, capabilities, client),
+		BaseAgent:   NewBaseAgent(name, capabilities, client, globalMemoryManager, getOrCreateTaskID()),
 		expertise:   expertise,
 		description: description,
 		useStream:   false,
@@ -53,6 +53,31 @@ func newDefaultAgent(name string, expertise string, description string, model st
 		Model:       model,
 		selector:    selector,
 	}
+}
+
+// 全局的MemoryManager实例
+var globalMemoryManager = NewMemoryManager()
+
+// 全局任务ID
+var currentTaskID string
+var taskMutex sync.Mutex
+
+// 获取或创建任务ID
+func getOrCreateTaskID() string {
+	taskMutex.Lock()
+	defer taskMutex.Unlock()
+
+	if currentTaskID == "" {
+		currentTaskID = fmt.Sprintf("task_%d", time.Now().UnixNano())
+	}
+	return currentTaskID
+}
+
+// ResetTaskID 重置任务ID（在新任务开始时调用）
+func ResetTaskID() {
+	taskMutex.Lock()
+	defer taskMutex.Unlock()
+	currentTaskID = ""
 }
 
 // SetStreamOutput 设置是否使用流式输出
@@ -179,6 +204,12 @@ func (e *ExpertAgent) Execute(ctx context.Context, input string) (string, error)
 
 				finalResponse.WriteString(resultStr)
 
+				// 存储对话历史
+				e.memory.AddMessage(oneapi.ChatMessage{
+					Role:    "assistant",
+					Content: finalResponse.String(),
+				})
+
 				// 添加短暂延迟，确保输出顺序
 				time.Sleep(100 * time.Millisecond)
 			}
@@ -193,13 +224,12 @@ func (e *ExpertAgent) Execute(ctx context.Context, input string) (string, error)
 				e.callback.OnContent(e.Name(), resp.Choices[0].Message.Content)
 			}
 			finalResponse.WriteString(resp.Choices[0].Message.Content)
+			// 存储对话历史
+			e.memory.AddMessage(oneapi.ChatMessage{
+				Role:    "assistant",
+				Content: finalResponse.String(),
+			})
 		}
-
-		// 存储对话历史
-		e.memory.AddMessage(oneapi.ChatMessage{
-			Role:    "assistant",
-			Content: finalResponse.String(),
-		})
 		break
 	}
 
