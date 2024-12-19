@@ -7,9 +7,11 @@ import (
 
 // Config 配置结构
 type Config struct {
-	APIKey  string `json:"api_key"`  // OpenAI API密钥
-	BaseURL string `json:"base_url"` // API基础URL
-	Model   string `json:"model"`    // 模型
+	APIKey          string `json:"api_key"`            // OpenAI API密钥
+	BaseURL         string `json:"base_url"`           // API基础URL
+	Model           string `json:"model"`              // 模型
+	WebSearchApiKey string `json:"web_search_api_key"` // web_search_api_key
+	WebSearchUrl    string `json:"web_search_url"`     // web_search_url
 }
 
 // LoadConfig 加载配置文件

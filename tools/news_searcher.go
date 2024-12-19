@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"multi-agent/config"
 	"net/http"
 	"strings"
 	"time"
@@ -74,10 +75,11 @@ type NewsResponse struct {
 	} `json:"data,omitempty"`
 }
 
-func NewNewsSearcher(apiKey string) *NewsSearcher {
+func NewNewsSearcher() *NewsSearcher {
+	cfg, _ := config.LoadConfig("config.json")
 	tool := &NewsSearcher{
 		BaseTool: NewBaseTool("news_searcher", "搜索最新新闻并提供摘要"),
-		apiKey:   apiKey,
+		apiKey:   cfg.WebSearchApiKey,
 		client:   &http.Client{Timeout: 10 * time.Second},
 	}
 
@@ -94,9 +96,10 @@ func (n *NewsSearcher) Execute(ctx context.Context, params map[string]interface{
 	if !ok || query == "" {
 		return nil, fmt.Errorf("invalid or missing query parameter")
 	}
-
+	// fmt.Println("query: ", query)
+	cfg, _ := config.LoadConfig("config.json")
 	// 构建API URL
-	apiURL := "https://api.bochaai.com/v1/web-search"
+	apiURL := cfg.WebSearchUrl
 	data := map[string]interface{}{
 		"query": query,
 	}

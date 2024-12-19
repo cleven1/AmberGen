@@ -11,7 +11,7 @@ func ToolUsageExample() {
 
 	// 创建工具
 	calculator := tools.NewCalculator()
-	newsSearcher := tools.NewNewsSearcher("博查搜索API Key")
+	newsSearcher := tools.NewNewsSearcher()
 
 	// 创建工具注册中心
 	registry := tools.NewToolRegistry()
