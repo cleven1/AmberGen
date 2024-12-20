@@ -96,7 +96,7 @@ func (n *NewsSearcher) Execute(ctx context.Context, params map[string]interface{
 	if !ok || query == "" {
 		return nil, fmt.Errorf("invalid or missing query parameter")
 	}
-	// fmt.Println("query: ", query)
+	fmt.Println("query: ", query)
 	cfg, _ := config.LoadConfig("config.json")
 	// 构建API URL
 	apiURL := cfg.WebSearchUrl
@@ -134,6 +134,7 @@ func (n *NewsSearcher) Execute(ctx context.Context, params map[string]interface{
 
 	// 生成摘要
 	summary := n.generateSummary(newsResp)
+	fmt.Println("summary == ", summary)
 	return summary, nil
 }
 

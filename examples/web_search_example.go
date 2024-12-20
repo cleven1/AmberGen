@@ -12,38 +12,46 @@ func WebSearchExample() {
 	// 创建回调
 	callback := NewDefaultOutputCallback()
 
-	// 创建判断Agent，设置更明确的系统提示词
-	judgeAgent := agent.NewAgent(
-		"judge",
-		"search necessity assessment",
-		`你是一个判断专家，负责判断用户问题是否需要联网搜索。
+	// 创建搜索Agent，添加错误处理和重试机制
+	searchAgent := agent.NewAgent(
+		"searcher",
+		"web search executor",
+		`你是一个网络搜索执行专家。你的职责是：
 
-判断标准：
-1. 如果问题涉及实时性信息(如新闻、比赛结果、天气等)，需要搜索
-2. 如果问题涉及具体数据、统计信息，需要搜索
-3. 如果问题是纯主观、理论或通用知识，不需要搜索
+1. 执行搜索查询并获取结果
+2. 如果搜索失败，尝试使用不同的关键词重试
+3. 验证搜索结果的相关性
+4. 确保所有子查询都得到处理
+5. 保持搜索结果的完整性
+6. 直接使用用户输入作为搜索查询
 
-请直接回答"需要搜索"或"不需要搜索"，并简要说明原因。`,
-	)
+处理步骤：
+1. 接收拆分后的查询条件
+2. 对每个查询执行搜索
+3. 验证结果是否满足需求
+4. 如果结果不理想，调整关键词重试
+5. 返回所有搜索结果
 
-	// 创建问题拆分Agent，设置更明确的系统提示词
-	splitAgent := agent.NewAgent(
-		"splitter",
-		"question decomposition",
-		`你是一个问题拆分专家，负责将需要搜索的问题拆分为多个具体的搜索查询。
-
-要求：
-1. 将问题拆分为多个独立的搜索查询
-2. 每个查询应该明确且具体
-3. 查询应该覆盖问题的不同方面
-4. 使用最优的搜索关键词
+错误处理：
+1. 搜索失败时进行重试
+2. 记录失败原因
+3. 使用备选词重新搜索
 
 输出格式：
- 数组: [<具体查询>]
-...`,
+{
+  "query": "搜索查询",
+  "results": [搜索结果],
+  "status": "成功/失败",
+  "retries": 重试次数
+}
+`,
 	)
 
-	// 创建搜索结果整合Agent，设置更明确的系统提示词
+	// 添加搜索工具
+	searchTool := tools.NewNewsSearcher()
+	searchAgent.AddTool(searchTool)
+
+	// 创建结果整合Agent，增强结果验证
 	integrateAgent := agent.NewAgent(
 		"integrator",
 		"result integration",
@@ -55,38 +63,32 @@ func WebSearchExample() {
 3. 清晰标注信息来源
 4. 按照逻辑顺序组织内容
 5. 如果信息有冲突，说明不同来源的差异
+6. 验证所有查询都得到了结果
+7. 标记可能缺失或不完整的信息
+
+结果验证：
+1. 检查每个子查询是否都有对应结果
+2. 验证结果的相关性和完整性
+3. 识别并标记可能的信息缺口
 
 输出格式：
-[回答内容，包含完整的信息整合]
+1. 综合答案
+2. 信息来源列表
+3. 完整性报告
+4. 可能的信息缺口
 
 数据来源：
 - <列出所有使用的数据来源>`,
 	)
 
-	// 创建Web搜索工具
-	searchTool := tools.NewNewsSearcher()
-
-	// 将工具添加到搜索Agent
-	// 创建执行搜索的Agent
-	searchAgent := agent.NewAgent(
-		"searcher",
-		"web search executor",
-		"执行网络搜索并返回结果",
-	)
-	searchAgent.AddTool(searchTool)
-
 	// 创建依赖图
 	graph := agent.NewDependencyGraph(1, callback)
 
 	// 添加所有Agent
-	graph.AddAgent(judgeAgent)
-	graph.AddAgent(splitAgent)
 	graph.AddAgent(searchAgent)
 	graph.AddAgent(integrateAgent)
 
 	// 设置依赖关系
-	graph.AddDependency("splitter", "judge")
-	graph.AddDependency("searcher", "splitter")
 	graph.AddDependency("integrator", "searcher")
 
 	// 执行示例查询
