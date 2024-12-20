@@ -24,6 +24,8 @@
   "api_key": "your-openai-api-key",
   "base_url": "https://api.openai.com",
   "model": "gpt-4",
+  "web_search_api_key": "your-web-search-api-key",
+  "web_search_url": "your-web-search-url",
 }
 ```
 
@@ -34,6 +36,8 @@
 | api_key | OpenAI API 密钥 | "sk-..." |
 | base_url | API 基础 URL | "https://api.openai.com" |
 | model | 默认使用的模型 | "gpt-4" |
+| web_search_api_key | 搜索api Key | "sk-..." |
+| web_search_url | 搜索url | "博查url" |
 
 ## 示例
 
